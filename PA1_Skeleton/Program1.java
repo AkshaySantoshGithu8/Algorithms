@@ -3,10 +3,7 @@
  * EID: as235628
  */
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.*;
 
 /**
  * Your solution goes in this class.
@@ -44,7 +41,11 @@ public class Program1 extends AbstractProgram1 {
             studentsAt.add(new ArrayList<>());
         }
         for (int x= 0; x < amount_students; x++)
-        studentsAt.get(schoolMatch.get(x)).add(x); 
+        {
+            if (schoolMatch.get(x) != -1) 
+            studentsAt.get(schoolMatch.get(x)).add(x);
+
+        }
 
         for (int student = 0; student < amount_students; student++)
         {
@@ -88,10 +89,65 @@ public class Program1 extends AbstractProgram1 {
      * @return A school-optimal stable Matching.
      */
     @Override
-    public Matching stableMatchingGaleShapley_schooloptimal(Matching problem) {
-        /* TODO implement this function */
+    public Matching stableMatchingGaleShapley_schooloptimal(Matching problem) 
+    {
+        //program starts with only a list of school's preferences and a list of student's preferences
+        ArrayList<ArrayList<Integer>> studentsRanked = new ArrayList<>();
 
-        return problem;
+        for (ArrayList<Integer> pList : problem.getSchoolPreference())
+        studentsRanked.add(new ArrayList<>(pList));
+
+        ArrayList<ArrayList<Integer>> schoolsRanked = problem.getStudentPreference();
+        //make a queue of queues to keep track of schools, once a school is done recruiting, poll. and once a students has been proposed to, poll
+        ArrayList<Integer> schoolOpenings = new ArrayList<>(problem.getSchoolOpenings());
+        //HashMap<Integer, ArrayList<Integer>> hm = new HashMap<>(); //keeps track of students
+        //in this version, schools propose
+        
+        boolean loopCond = true;
+
+        ArrayList<Integer> studentMatches = new ArrayList<>(Collections.nCopies(problem.getStudentCount(), -1)); //initialize each school to -1 and predefined size shortcut
+        while (loopCond) //poll schools' pref-list queues as you propose, poll student from sub-q u propose to
+        {
+            loopCond = false;
+            for (int schoolIndex = 0; schoolIndex < studentsRanked.size(); schoolIndex++)
+            {
+                ArrayList<Integer> school = studentsRanked.get(schoolIndex); //get list of students for this school
+                if (school.isEmpty() || schoolOpenings.get(schoolIndex) == 0) //current school doesnt have an opening or is empty
+                    continue;
+
+                loopCond = true;
+                Integer student = school.remove(0); //pick the first student from the list not proposed
+                
+                if (studentMatches.get(student) == -1) //student is open
+                {
+                    studentMatches.set(student, schoolIndex);
+                    schoolOpenings.set(schoolIndex, schoolOpenings.get(schoolIndex)-1);
+                }
+                else  //student is taken but likes school better
+                {
+                    //problem.getStudentMatching().get(student) is the student that is matched
+                    //get matched students' pref list
+                    //if student's match is higher index than this school
+                    // current school = problem.getStudentMatching().get(student)
+                    // new school = schoolIndex
+                    // compare using problem.getStudentPreference().get(student)
+                    if (schoolsRanked.get(student).indexOf(schoolIndex) < schoolsRanked.get(student).indexOf(studentMatches.get(student)))
+                    {
+                        int oldSchool = studentMatches.get(student);
+                        studentMatches.set(student, schoolIndex);
+                        schoolOpenings.set(schoolIndex, schoolOpenings.get(schoolIndex)-1);
+                        schoolOpenings.set(oldSchool, schoolOpenings.get(oldSchool)+1);
+                    }
+                }
+            //else skip
+            }
+            
+            
+            
+           
+        }
+        //problem.setStudentMatching(studentMatches);
+        return new Matching(problem, studentMatches);
     }
 
     /**
