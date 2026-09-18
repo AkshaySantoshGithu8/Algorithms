@@ -47,6 +47,12 @@ public class Program1 extends AbstractProgram1 {
 
         }
 
+        for (int school = 0; school < amount_schools; school++)
+        {
+            if (studentsAt.get(school).size() > problem.getSchoolOpenings().get(school))
+                return false;
+        }
+
         for (int student = 0; student < amount_students; student++)
         {
             
@@ -60,6 +66,9 @@ public class Program1 extends AbstractProgram1 {
 
                 if (problem.getSchoolOpenings().get(school) > currStud.size()) //if you have open spots
                     return false;
+
+                if (currStud.isEmpty())
+                    continue;
 
                 Integer worstStud = currStud.get(0);
 
@@ -161,9 +170,70 @@ public class Program1 extends AbstractProgram1 {
      * @return A student-optimal stable Matching.
      */
     @Override
-    public Matching stableMatchingGaleShapley_studentoptimal(Matching problem) {
-        /* TODO implement this function */
+    public Matching stableMatchingGaleShapley_studentoptimal(Matching problem) 
+    {
+        ArrayList<ArrayList<Integer>> studentsRanked = new ArrayList<>();
 
-        return problem;
+        for (ArrayList<Integer> pList : problem.getSchoolPreference())
+            studentsRanked.add(new ArrayList<>(pList));
+
+        ArrayList<ArrayList<Integer>> schoolsRanked = new ArrayList<>();
+        for (ArrayList<Integer> pList : problem.getStudentPreference())
+            schoolsRanked.add(new ArrayList<>(pList));
+
+        ArrayList<Integer> schoolOpenings = new ArrayList<>(problem.getSchoolOpenings());
+        ArrayList<Integer> studentMatches = new ArrayList<>(
+            Collections.nCopies(problem.getStudentCount(), -1));
+        ArrayList<Integer> nextProposal = new ArrayList<>(
+            Collections.nCopies(problem.getStudentCount(), 0));
+        Queue<Integer> unmatchedStudents = new ArrayDeque<>(); //store student indices instead of preflists
+
+        for (int student = 0; student < problem.getStudentCount(); student++)
+            unmatchedStudents.add(student);
+
+        while (!unmatchedStudents.isEmpty()) //while there a student who is unmatched
+        {
+            int studentIndex = unmatchedStudents.remove(); //poll a student index
+            ArrayList<Integer> student = schoolsRanked.get(studentIndex);
+
+            if (nextProposal.get(studentIndex) == student.size())
+                continue;
+
+            int school = student.get(nextProposal.get(studentIndex));
+            nextProposal.set(studentIndex, nextProposal.get(studentIndex) + 1);
+
+            if (schoolOpenings.get(school) > 0)
+            {
+                studentMatches.set(studentIndex, school);
+                schoolOpenings.set(school, schoolOpenings.get(school)-1);
+                continue;
+            }
+
+            int worstStudent = -1;
+
+            for (int currentStudent = 0; currentStudent < studentMatches.size(); currentStudent++) 
+            {
+                //if first elem set worststudent
+                if (studentMatches.get(currentStudent) == school && (worstStudent == -1 || studentsRanked.get(school).indexOf(currentStudent) > studentsRanked.get(school).indexOf(worstStudent)))
+                {
+                    worstStudent = currentStudent;
+                }
+            }
+
+            if (worstStudent != -1 && studentsRanked.get(school).indexOf(studentIndex) < studentsRanked.get(school).indexOf(worstStudent))
+            {
+                //check the student to see if school likes student more
+                studentMatches.set(studentIndex, school);
+                studentMatches.set(worstStudent, -1);
+                unmatchedStudents.add(worstStudent);
+            }
+            else
+            unmatchedStudents.add(studentIndex);
+        }
+
+        return new Matching(problem, studentMatches);
+
+
+
     }
 }
