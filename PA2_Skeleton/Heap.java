@@ -32,6 +32,8 @@ public class Heap<HeapMemberGeneric extends HeapMember> {
             minHeap.get(parent).setIndex(i);
             minHeap.set(i,minHeap.get(parent));
             minHeap.set(parent,swapedHeapMember);
+            indices.put(swapedHeapMember, parent);
+            indices.put(minHeap.get(i), i);
 
             heapifyUp(parent);
         }
@@ -56,6 +58,8 @@ public class Heap<HeapMemberGeneric extends HeapMember> {
             minHeap.get(minimum).setIndex(i);
             minHeap.set(i,minHeap.get(minimum));
             minHeap.set(minimum,swapedHeapMember);
+            indices.put(swapedHeapMember, minimum);
+            indices.put(minHeap.get(i), i);
 
             heapifyDown(minimum);
         }
@@ -126,6 +130,7 @@ public class Heap<HeapMemberGeneric extends HeapMember> {
         HeapMemberGeneric last = minHeap.remove(minHeap.size()-1);  
         last.setIndex(0);
         minHeap.set(0, last);
+        indices.put(last, 0);
 
         heapifyDown(0);
         }
@@ -190,7 +195,16 @@ public class Heap<HeapMemberGeneric extends HeapMember> {
      * @param newKey - the new value of HeapMemberGeneric r in the heap
      */
     public void changeKey(HeapMemberGeneric r, int newKey) {
-        // TODO
+        Integer index = indices.get(r);
+        if (index == null)
+            return;
+
+        int oldKey = r.getValue();
+        r.setValue(newKey);
+        if (newKey < oldKey)
+            heapifyUp(index);
+        else if (newKey > oldKey)
+            heapifyDown(index);
     }
 
     /*
@@ -204,8 +218,7 @@ public class Heap<HeapMemberGeneric extends HeapMember> {
      */
 
     public boolean contains(HeapMemberGeneric m) {
-        if(m.getIndex() == -1) return false;
-        return true;
+        return indices.containsKey(m);
     }
 
     public int getSize() {
