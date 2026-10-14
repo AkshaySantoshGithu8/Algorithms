@@ -1,3 +1,4 @@
+package PA2_Skeleton;
 /*
  * Name: Jon Snow
  * EID: GoT0001

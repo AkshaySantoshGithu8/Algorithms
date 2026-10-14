@@ -1,3 +1,4 @@
+package PA2_Skeleton;
 /*
  * Name: Jon Snow
  * EID: GoT0001
@@ -8,10 +9,11 @@
 // Include this file in your final submission
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class Heap<HeapMemberGeneric extends HeapMember> {
     private ArrayList<HeapMemberGeneric> minHeap;
-
+    HashMap<HeapMemberGeneric, Integer> indices = new HashMap<>(); 
     public Heap() {
         minHeap = new ArrayList<HeapMemberGeneric>();
     }
@@ -71,6 +73,7 @@ public class Heap<HeapMemberGeneric extends HeapMember> {
         for(int i = 0; i < heap_members.size(); i++){
             heap_members.get(i).setIndex(i);
             minHeap.add(heap_members.get(i));
+            indices.put(heap_members.get(i), i);
         }
         int firstIndex = (heap_members.size()/2)-1;
 
@@ -91,6 +94,7 @@ public class Heap<HeapMemberGeneric extends HeapMember> {
         minHeap.add(in);
         in.setIndex(minHeap.size()-1); //the index your node is at
         heapifyUp(minHeap.size()-1); //takes index rather than value as input
+        indices.put(in, in.getIndex());
     }
 
     /**
@@ -126,8 +130,12 @@ public class Heap<HeapMemberGeneric extends HeapMember> {
         heapifyDown(0);
         }
         else
+        {
             minHeap.remove(0);
+            
+        }
         min.setIndex(-1);
+        indices.remove(min);
         return min;
     }
 
@@ -151,9 +159,26 @@ public class Heap<HeapMemberGeneric extends HeapMember> {
         if (index != 0)
         heapifyUp(index);
         */
-       int index = gen.getIndex();
+        Integer index = indices.get(gen);
+        if (index == null) // not found
+            return;
 
-       
+        int lastIndex = minHeap.size() - 1;
+        HeapMemberGeneric last = minHeap.remove(lastIndex);
+        indices.remove(gen);
+        gen.setIndex(-1);
+
+        if (index == lastIndex)
+            return;
+
+        minHeap.set(index, last);
+        last.setIndex(index);
+        indices.put(last, index);
+
+        if (index > 0 && last.getValue() < minHeap.get((index - 1) / 2).getValue())
+            heapifyUp(index);
+        else
+            heapifyDown(index);
     }
 
     /**
