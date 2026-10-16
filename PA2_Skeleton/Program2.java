@@ -11,6 +11,7 @@ package PA2_Skeleton;
 
 import java.util.ArrayList;
 
+
 public class Program2 {
 
     /**
@@ -22,9 +23,47 @@ public class Program2 {
      */
     public int findMinimumRouteDistance(Problem problem) {
         // TODO
-        ArrayList<Region> regions = problem.getRegions();
+
+        Heap<Region> heap = new Heap<>();
+        ArrayList<Region> regions = problem.getRegions(); //adjacency list
+        for (Region r : regions)
+            r.resetMinDist();
+        
+
         Region start = problem.getStartRegion();
+        start.setMinDist(0);
+        heap.buildHeap(regions);
         Region end = problem.getEndRegion();
+        
+        
+        while (heap.getSize() > 0)
+        {
+            Region curr = heap.extractMin();
+            
+            if (curr == null)
+                continue;
+            //target  node
+            if (curr.equals(end))
+            {
+                return curr.getMinDist();
+            }
+           
+            ArrayList<Integer> weights = curr.getWeights();
+            //for every neighbor
+            for (int index = 0; index < curr.getNeighbors().size(); index++)
+            {
+                Region r = curr.getNeighbors().get(index);
+                if (!heap.contains(r))
+                    continue;
+                int currCand = curr.getMinDist() + weights.get(index);
+                if (currCand < r.getMinDist())
+                {
+                    heap.changeKey(r, currCand);
+                }
+                
+            }
+        }
+
         return -1;
     }
 
